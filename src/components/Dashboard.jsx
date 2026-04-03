@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import MetricCard from './MetricCard';
 import VentasChart from './VentasChart';
 import ProductosChart from './ProductosChart';
-import '../App.css'; // si tenías estilos globales
+import '../App.css';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -50,11 +50,11 @@ const Dashboard = () => {
     <div className="App">
       <header style={{ textAlign: 'center', marginBottom: '30px' }}>
         <h1>Dashboard de KPIs de Ventas</h1>
-        <p>Bienvenido, {user?.email} (Rol: {user?.rol})</p>
-        <button onClick={logout} style={{ marginTop: '10px' }}>Cerrar sesión</button>
-        <p>Datos obtenidos desde PostgreSQL vía FastAPI con autenticación</p>
+        <p>Bienvenido, <strong>{user?.nombre}</strong> (Rol: {user?.rol})</p>
+        <button onClick={logout}>Cerrar sesión</button>
       </header>
 
+      {/* KPIs comunes para todos los roles */}
       <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
         <MetricCard title="Ventas totales" value={`S/ ${totalVentas.toLocaleString()}`} color="#8884d8" />
         <MetricCard title="Cumplimiento último mes" value={cumplimientoUltimoMes} unit="%" color="#82ca9d" />
@@ -64,6 +64,23 @@ const Dashboard = () => {
         )}
       </div>
 
+      {/* KPIs adicionales según rol */}
+      {user?.rol === 'admin' && (
+        <div style={{ marginBottom: '30px', backgroundColor: '#e0f7fa', padding: '15px', borderRadius: '8px' }}>
+          <h3>Panel de Administrador</h3>
+          <p>Aquí puedes mostrar KPIs exclusivos como ventas por categoría, márgenes, etc.</p>
+          {/* Aquí agregarás el componente de VentasPorCategoriaChart más adelante */}
+        </div>
+      )}
+
+      {user?.rol === 'gerente' && (
+        <div style={{ marginBottom: '30px', backgroundColor: '#fff3e0', padding: '15px', borderRadius: '8px' }}>
+          <h3>Panel de Gerente</h3>
+          <p>KPIs de equipo, rendimiento por tienda, etc.</p>
+        </div>
+      )}
+
+      {/* Gráficos comunes */}
       <div style={{ marginBottom: '30px' }}>
         <VentasChart data={ventas} />
       </div>
@@ -74,5 +91,4 @@ const Dashboard = () => {
     </div>
   );
 };
-
 export default Dashboard;

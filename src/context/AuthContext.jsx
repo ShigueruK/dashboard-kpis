@@ -10,28 +10,56 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Función para obtener el perfil desde el backend
+  const fetchPerfil = async (token) => {
+    try {
+      const response = await axios.get('http://localhost:8000/perfil', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener perfil:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUser({ email: decoded.sub, rol: decoded.rol }); // Necesitarás incluir rol en el token
-      } catch (e) {
-        localStorage.removeItem('token');
-      }
+      fetchPerfil(token).then(perfil => {
+        if (perfil) {
+          setUser(perfil);
+        } else {
+          // Si falla, limpiar token
+          localStorage.removeItem('token');
+        }
+        setLoading(false);
+      });
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     const params = new URLSearchParams();
     params.append('username', email);
     params.append('password', password);
+    
     const response = await axios.post('http://localhost:8000/login', params);
     const { access_token, rol } = response.data;
+    
     localStorage.setItem('token', access_token);
-    const decoded = jwtDecode(access_token);
-    setUser({ email: decoded.sub, rol });
+    
+    // Obtener el perfil completo del usuario
+    const perfil = await fetchPerfil(access_token);
+    if (perfil) {
+      setUser(perfil);
+    } else {
+      // Si no se pudo obtener el perfil, al menos guardamos email y rol del token
+      const decoded = jwtDecode(access_token);
+      setUser({ email: decoded.sub, rol });
+    }
+    
     return response.data;
   };
 
