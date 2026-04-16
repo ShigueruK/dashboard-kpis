@@ -22,7 +22,6 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   };
-
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -30,7 +29,6 @@ export const AuthProvider = ({ children }) => {
         if (perfil) {
           setUser(perfil);
         } else {
-          // Si falla, limpiar token
           localStorage.removeItem('token');
         }
         setLoading(false);
@@ -55,12 +53,13 @@ export const AuthProvider = ({ children }) => {
     if (perfil) {
       setUser(perfil);
     } else {
-      // Si no se pudo obtener el perfil, al menos guardamos email y rol del token
+      // Fallback: usar datos del token
       const decoded = jwtDecode(access_token);
       setUser({ email: decoded.sub, rol });
     }
     
     return response.data;
+
   };
 
   const logout = () => {
