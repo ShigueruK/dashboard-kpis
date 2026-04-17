@@ -6,14 +6,18 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
+// Instancia de axios con baseURL desde variable de entorno
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+});
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Función para obtener el perfil desde el backend
   const fetchPerfil = async (token) => {
     try {
-      const response = await axios.get('http://localhost:8000/perfil', {
+      const response = await api.get('/perfil', {
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
@@ -22,6 +26,7 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   };
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -42,24 +47,17 @@ export const AuthProvider = ({ children }) => {
     const params = new URLSearchParams();
     params.append('username', email);
     params.append('password', password);
-    
-    const response = await axios.post('http://localhost:8000/login', params);
+    const response = await api.post('/login', params);
     const { access_token, rol } = response.data;
-    
     localStorage.setItem('token', access_token);
-    
-    // Obtener el perfil completo del usuario
     const perfil = await fetchPerfil(access_token);
     if (perfil) {
       setUser(perfil);
     } else {
-      // Fallback: usar datos del token
       const decoded = jwtDecode(access_token);
       setUser({ email: decoded.sub, rol });
     }
-    
     return response.data;
-
   };
 
   const logout = () => {

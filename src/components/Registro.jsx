@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+});
+
 const Registro = () => {
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
@@ -10,35 +14,29 @@ const Registro = () => {
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const data = {
-      nombre: nombre,
-      email: email,
-      password: password,
-      rol: 'vendedor'
-    };
-    await axios.post('http://localhost:8000/registro', data, {
-      headers: { 'Content-Type': 'application/json' }
-    });
-    setSuccess('Usuario registrado. Ahora puedes iniciar sesión.');
-    setTimeout(() => navigate('/login'), 2000);
-  } catch (err) {
-    let mensajeError = 'Error al registrar';
-    if (err.response && err.response.data) {
-      if (typeof err.response.data === 'string') {
-        mensajeError = err.response.data;
-      } else if (err.response.data.detail && typeof err.response.data.detail === 'string') {
-        mensajeError = err.response.data.detail;
-      } else if (err.response.data.detail && typeof err.response.data.detail === 'object') {
-        mensajeError = JSON.stringify(err.response.data.detail);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const data = { nombre, email, password, rol: 'vendedor' };
+      await api.post('/registro', data, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      setSuccess('Usuario registrado. Ahora puedes iniciar sesión.');
+      setTimeout(() => navigate('/login'), 2000);
+    } catch (err) {
+      let mensajeError = 'Error al registrar';
+      if (err.response && err.response.data) {
+        if (typeof err.response.data === 'string') {
+          mensajeError = err.response.data;
+        } else if (err.response.data.detail && typeof err.response.data.detail === 'string') {
+          mensajeError = err.response.data.detail;
+        } else if (err.response.data.detail && typeof err.response.data.detail === 'object') {
+          mensajeError = JSON.stringify(err.response.data.detail);
+        }
       }
+      setError(mensajeError);
     }
-    setError(mensajeError);
-  }
-};
-
+  };
 
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>

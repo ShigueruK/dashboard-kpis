@@ -7,6 +7,10 @@ import ProductosChart from './ProductosChart';
 import VentasPorCategoriaChart from './VentasPorCategoriaChart';
 import '../App.css';
 
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+});
+
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const [ventas, setVentas] = useState([]);
@@ -28,25 +32,24 @@ const Dashboard = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       try {
-        // 1. Cargar datos comunes (ventas, productos, cumplimiento)
+        // Datos comunes
         const [ventasRes, productosRes, cumplimientoRes] = await Promise.all([
-          axios.get('http://localhost:8000/ventas-mensuales', { headers }),
-          axios.get('http://localhost:8000/top-productos', { headers }),
-          axios.get('http://localhost:8000/cumplimiento', { headers })
+          api.get('/ventas-mensuales', { headers }),
+          api.get('/top-productos', { headers }),
+          api.get('/cumplimiento', { headers })
         ]);
 
         setVentas(ventasRes.data);
         setProductos(productosRes.data);
         setCumplimiento(cumplimientoRes.data);
 
-        // 2. Si el rol es admin o gerente, cargar datos adicionales
+        // Datos adicionales según rol
         if (user?.rol === 'admin' || user?.rol === 'gerente') {
           try {
-            const catRes = await axios.get('http://localhost:8000/ventas-por-categoria', { headers });
+            const catRes = await api.get('/ventas-por-categoria', { headers });
             setVentasCategoria(catRes.data);
           } catch (err) {
             console.error('Error al cargar ventas por categoría:', err);
-            // No mostramos error general, solo log
           }
         }
       } catch (err) {
@@ -57,7 +60,7 @@ const Dashboard = () => {
     };
 
     fetchData();
-  }, [user?.rol]); // Dependencia: si cambia el rol, recargamos (por si cambia de usuario)
+  }, [user?.rol]);
 
   if (loading) return <div className="App">Cargando datos...</div>;
   if (error) return <div className="App">Error: {error}</div>;
@@ -75,7 +78,6 @@ const Dashboard = () => {
         <button onClick={logout}>Cerrar sesión</button>
       </header>
 
-      {/* KPIs comunes */}
       <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
         <MetricCard title="Ventas totales" value={`S/ ${totalVentas.toLocaleString()}`} color="#8884d8" />
         <MetricCard title="Cumplimiento último mes" value={cumplimientoUltimoMes} unit="%" color="#82ca9d" />
@@ -85,7 +87,6 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* KPIs adicionales según rol */}
       {user?.rol === 'admin' && (
         <div style={{ marginBottom: '30px', backgroundColor: '#e0f7fa', padding: '15px', borderRadius: '8px' }}>
           <h3>Panel de Administrador</h3>
@@ -100,7 +101,6 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Gráficos comunes */}
       <div style={{ marginBottom: '30px' }}>
         <VentasChart data={ventas} />
       </div>

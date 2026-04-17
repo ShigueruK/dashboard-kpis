@@ -1,9 +1,9 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import RutaProtegida from './components/RutaProtegida';
 import Login from './components/Login';
 import Registro from './components/Registro';
 import Dashboard from './components/Dashboard';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 function App() {
   return (
@@ -25,4 +25,3 @@ function App() {
 }
 
 export default App;
-
